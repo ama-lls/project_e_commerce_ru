@@ -482,13 +482,13 @@ LIMIT 3;
 /*выборка 3х категорий товаров с наибольшими темпами роста оборота 'yoy_turnover_percentage' в 2022 г. из представления 'trade_category'/
 selection of 3 categories of goods with highest rate of growth of turnover 'yoy_turnover_percentage' from view 'trade_category'*/
 SELECT category,
-	   year_trade,
-	   total_turnover,	
-	   ROUND((total_turnover - LAG(total_turnover, 1) OVER (
-             PARTITION BY category
-             ORDER BY year_trade)) / LAG(total_turnover, 1) OVER (
-             PARTITION BY category
-             ORDER BY year_trade)*100, 0) AS "yoy_turnover_percentage"        
+       year_trade,
+       total_turnover,	
+       ROUND((total_turnover - LAG(total_turnover, 1) OVER (
+              PARTITION BY category
+              ORDER BY year_trade)) / LAG(total_turnover, 1) OVER (
+              PARTITION BY category
+              ORDER BY year_trade)*100, 0) AS "yoy_turnover_percentage"        
 FROM trade_category
 ORDER BY year_trade Desc, yoy_turnover_percentage Desc
 LIMIT 3;
@@ -496,9 +496,9 @@ LIMIT 3;
 /*выборка 3х категорий товаров с наименьшими темпами роста оборота 'yoy_turnover_percentage' в 2022 г. из представления 'trade_category'/
 selection of 3 categories of goods with lowest rate of growth of turnover 'yoy_turnover_percentage' from view 'trade_category'*/
 SELECT category,
-	   year_trade,
-	   total_turnover,	
-	   ROUND((total_turnover - LAG(total_turnover, 1) OVER (
+       year_trade,
+       total_turnover,	
+       ROUND((total_turnover - LAG(total_turnover, 1) OVER (
              PARTITION BY category
              ORDER BY year_trade)) / LAG(total_turnover, 1) OVER (
              PARTITION BY category
