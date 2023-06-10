@@ -27,7 +27,7 @@ selection and comparison of turnover and average check by comparable quarters in
 WITH t1 AS (
     SELECT QUARTER(date_trade) AS "quarter_trade",
            YEAR(date_trade) AS "year_trade",
-	       ROUND(SUM(turnover), 0) AS "total_turnover",
+	   ROUND(SUM(turnover), 0) AS "total_turnover",
            ROUND(AVG(avg_check), 0) AS "avg_check"
       FROM trade
      GROUP BY QUARTER(date_trade), YEAR(date_trade)
@@ -53,7 +53,7 @@ AS SELECT *
       WITH t2 AS (
            SELECT YEAR(date_trade) AS "year_trade",
                   region,
-	              ROUND(SUM(turnover), 0) AS "total_turnover",
+	          ROUND(SUM(turnover), 0) AS "total_turnover",
                   ROUND(AVG(avg_check), 0) AS "avg_check"
              FROM trade
             GROUP BY region, YEAR(date_trade)
@@ -103,16 +103,16 @@ SELECT region,
 selection of turnover (total_turnover), selection of turnover share (turnover_percentage) and
 comparison of turnover share (yoy_turnover_percentage) by regions in 2022 and 2021 years */
 SELECT year_trade,
-	   region,
-	   total_turnover,
+       region,
+       total_turnover,
        turnover_percentage,
        ROUND((turnover_percentage - LAG(turnover_percentage, 1) OVER (
              PARTITION BY region
              ORDER BY year_trade)), 2) AS "yoy_turnover_percentage"
   FROM (
          SELECT year_trade,
-	            region,
-	            ROUND(SUM(total_turnover), 0)   AS "total_turnover",
+	        region,
+	        ROUND(SUM(total_turnover), 0)   AS "total_turnover",
                 ROUND(((SUM(total_turnover)/SUM(year_total_turnover))*100), 1) AS "turnover_percentage"	
            FROM (
                   SELECT year_trade1 AS "year_trade",
@@ -121,16 +121,16 @@ SELECT year_trade,
                          year_total_turnover
                     FROM (
                            SELECT YEAR(date_trade) AS "year_trade1",
-			                      region,
-	                              ROUND(SUM(turnover), 0) AS "total_turnover"
+			          region,
+	                          ROUND(SUM(turnover), 0) AS "total_turnover"
                              FROM trade
                             GROUP BY region, YEAR(date_trade) ) AS s1
                                   LEFT JOIN (
                                               SELECT YEAR(date_trade) AS "year_trade",
-	                                                 ROUND(SUM(turnover), 0) AS "year_total_turnover"
+	                                             ROUND(SUM(turnover), 0) AS "year_total_turnover"
                                                 FROM trade
-				                               GROUP BY YEAR(date_trade) ) AS s2
-	                              ON s1.year_trade1=s2.year_trade) AS s3
+				               GROUP BY YEAR(date_trade) ) AS s2
+	                               ON s1.year_trade1=s2.year_trade) AS s3
 GROUP BY region, year_trade
  ORDER BY turnover_percentage Desc) AS s4
  ORDER BY year_trade Desc,
@@ -141,10 +141,10 @@ creation of view 'trade_category'*/
 CREATE VIEW trade_category
 AS SELECT *
      FROM (
-         WITH t3 AS (
+           WITH t3 AS (
               SELECT YEAR(date_trade) AS "year_trade",
                      category,
-	                 ROUND(SUM(turnover), 0) AS "total_turnover",
+	             ROUND(SUM(turnover), 0) AS "total_turnover",
                      ROUND(AVG(avg_check), 0) AS "avg_check"
                 FROM trade
                GROUP BY category, YEAR(date_trade)
@@ -191,16 +191,16 @@ SELECT category,
 selection of turnover (total_turnover), selection of turnover share (turnover_percentage) and
 comparison of turnover share (yoy_turnover_percentage) by categories in 2022 and 2021 years */
 SELECT year_trade,
-	   category,
-	   total_turnover,
+       category,
+       total_turnover,
        turnover_percentage,
        ROUND((turnover_percentage - LAG(turnover_percentage, 1) OVER (
              PARTITION BY category
              ORDER BY year_trade)), 2) AS "yoy_turnover_percentage"
   FROM (
          SELECT year_trade,
-	            category,
-	            ROUND(SUM(total_turnover), 0)   AS "total_turnover",
+	        category,
+	        ROUND(SUM(total_turnover), 0)   AS "total_turnover",
                 ROUND(((SUM(total_turnover)/SUM(year_total_turnover))*100), 1) AS "turnover_percentage"	
            FROM (
                   SELECT year_trade1 AS "year_trade",
@@ -209,15 +209,15 @@ SELECT year_trade,
                          year_total_turnover
                     FROM (
                            SELECT YEAR(date_trade) AS "year_trade1",
-			                      category,
-	                              ROUND(SUM(turnover), 0) AS "total_turnover"
+			          category,
+	                          ROUND(SUM(turnover), 0) AS "total_turnover"
                              FROM trade
                             GROUP BY category, YEAR(date_trade) ) AS s1
                                   LEFT JOIN (
                                               SELECT YEAR(date_trade) AS "year_trade",
-	                                                 ROUND(SUM(turnover), 0) AS "year_total_turnover"
+	                                             ROUND(SUM(turnover), 0) AS "year_total_turnover"
                                                 FROM trade
-				                               GROUP BY YEAR(date_trade) ) AS s2
+				               GROUP BY YEAR(date_trade) ) AS s2
 	                              ON s1.year_trade1=s2.year_trade) AS s3
 GROUP BY category, year_trade
  ORDER BY turnover_percentage Desc) AS s4
@@ -229,7 +229,7 @@ selection of TOP-5 categories by turnover in 2022*/
 WITH t4 AS (
     SELECT YEAR(date_trade) AS "year_trade",
            category, 
-	       ROUND(SUM(turnover), 0) AS "total_turnover"
+	   ROUND(SUM(turnover), 0) AS "total_turnover"
       FROM trade
      WHERE YEAR(date_trade) = "2022"
      GROUP BY YEAR(date_trade), category
@@ -249,38 +249,38 @@ SELECT year_trade1 AS "year_trade",
 	   ROUND((top5_total_turnover/year_total_turnover)*100, 0) AS "top5_percentage"
   FROM (
         SELECT YEAR(date_trade) AS "year_trade1",
-			   ROUND(SUM(turnover), 0) AS "top5_total_turnover"
-		  FROM trade
-		 WHERE YEAR(date_trade) = "2022" AND category IN ('Digital & Home Appliances','Furniture and household goods','Clothing and shoes','Food','Beauty & Health')
-		 GROUP BY YEAR(date_trade)) AS s1
+	       ROUND(SUM(turnover), 0) AS "top5_total_turnover"
+	  FROM trade
+         WHERE YEAR(date_trade) = "2022" AND category IN ('Digital & Home Appliances','Furniture and household goods','Clothing and shoes','Food','Beauty & Health')
+         GROUP BY YEAR(date_trade)) AS s1
                LEFT JOIN (
                            SELECT YEAR(date_trade) AS "year_trade",
-								  ROUND(SUM(turnover), 0) AS "year_total_turnover"
+				  ROUND(SUM(turnover), 0) AS "year_total_turnover"
                              FROM trade
-				            GROUP BY YEAR(date_trade)) AS s2
-				ON s1.year_trade1=s2.year_trade;  
+		            GROUP BY YEAR(date_trade)) AS s2
+	            ON s1.year_trade1=s2.year_trade;  
 
 /* выборка оборота ТОП-5 категорий (top5_total_turnover), общего оборота (year_total_turnover), доли ТОП-5 категорий в общем обороте (top5_percentage) по кварталам в 2022 г./
 selection of turnover of TOP-5 categories (top5_total_turnover), total turnover (year_total_turnover), share of TOP-5 categories by turnover (top5_percentage) by quarters in 2022 */
 SELECT year_trade1 AS "year_trade",
        quarter_trade1 AS "quarter_trade",
-	   top5_total_turnover,
-	   year_total_turnover,
-	   ROUND((top5_total_turnover/year_total_turnover)*100, 0) AS "top5_percentage"
+       top5_total_turnover,
+       year_total_turnover,
+       ROUND((top5_total_turnover/year_total_turnover)*100, 0) AS "top5_percentage"
   FROM (
-		SELECT YEAR(date_trade) AS "year_trade1",
-			   QUARTER(date_trade) AS "quarter_trade1",
-			   ROUND(SUM(turnover), 0) AS "top5_total_turnover"
-		  FROM trade
-		 WHERE YEAR(date_trade) = "2022" AND category IN ('Digital & Home Appliances','Furniture and household goods','Clothing and shoes','Food','Beauty & Health')
-		 GROUP BY YEAR(date_trade), QUARTER(date_trade)) AS s1
-			   LEFT JOIN (
+        SELECT YEAR(date_trade) AS "year_trade1",
+	       QUARTER(date_trade) AS "quarter_trade1",
+	       ROUND(SUM(turnover), 0) AS "top5_total_turnover"
+          FROM trade
+         WHERE YEAR(date_trade) = "2022" AND category IN ('Digital & Home Appliances','Furniture and household goods','Clothing and shoes','Food','Beauty & Health')
+	 GROUP BY YEAR(date_trade), QUARTER(date_trade)) AS s1
+               LEFT JOIN (
                           SELECT YEAR(date_trade) AS "year_trade",
                                  QUARTER(date_trade) AS "quarter_trade",
-								 ROUND(SUM(turnover), 0) AS "year_total_turnover"
-						    FROM trade
-						   GROUP BY YEAR(date_trade), QUARTER(date_trade)) AS s2
-			   ON s1.year_trade1=s2.year_trade AND s1.quarter_trade1=s2.quarter_trade;
+			         ROUND(SUM(turnover), 0) AS "year_total_turnover"
+			    FROM trade
+			    GROUP BY YEAR(date_trade), QUARTER(date_trade)) AS s2
+			        ON s1.year_trade1=s2.year_trade AND s1.quarter_trade1=s2.quarter_trade;
 
 /* создание таблицы `population_base`: регион, население/
 creation of table `population_base`: region, population*/
@@ -347,23 +347,23 @@ deviation of average check by region from average check by population group (dev
 WITH t5 AS (
      SELECT year_trade,
             region, 
-	        avg_check,
+	    avg_check,
             population_group
        FROM (
             SELECT YEAR(date_trade) AS "year_trade",
                    region, 
-	               ROUND(AVG(avg_check), 0) AS "avg_check"
+	           ROUND(AVG(avg_check), 0) AS "avg_check"
               FROM trade
              WHERE YEAR(date_trade) = "2022"
              GROUP BY YEAR(date_trade), region) AS s1
 	               LEFT JOIN (
-				              SELECT region_trade, population_group
-				                FROM data_book
-					                 LEFT JOIN (
-						                        SELECT region, population_group
-										          FROM population_base) AS s2
-					                 ON data_book.region_data_book = s2.region) AS s3
-	               ON s1.region = s3.region_trade
+				   SELECT region_trade, population_group
+				     FROM data_book
+					       LEFT JOIN (
+						           SELECT region, population_group
+				                             FROM population_base) AS s2
+					             ON data_book.region_data_book = s2.region) AS s3
+	                     ON s1.region = s3.region_trade
 )
 SELECT year_trade,
        region,
@@ -371,12 +371,12 @@ SELECT year_trade,
        ROUND(AVG(avg_check) OVER (
              PARTITION BY population_group
              ORDER BY year_trade), 0) AS "avg_check_group",
-	   ROUND((avg_check - AVG(avg_check) OVER (
+       ROUND((avg_check - AVG(avg_check) OVER (
              PARTITION BY population_group
              ORDER BY year_trade)) / AVG(avg_check) OVER (
              PARTITION BY population_group
              ORDER BY year_trade)*100, 0) AS "deviation_avg_check",
-	   population_group
+       population_group
   FROM t5
   ORDER BY avg_check Desc;
 
@@ -388,24 +388,24 @@ WITH t6 AS (
      SELECT year_trade,
             quarter_trade,
             region, 
-	        avg_check,
+	    avg_check,
             population_group
        FROM (
             SELECT YEAR(date_trade) AS "year_trade",
                    QUARTER(date_trade) AS "quarter_trade",
                    region, 
-	               ROUND(AVG(avg_check), 0) AS "avg_check"
+	           ROUND(AVG(avg_check), 0) AS "avg_check"
               FROM trade
              WHERE YEAR(date_trade) = "2022"
              GROUP BY YEAR(date_trade), QUARTER(date_trade), region) AS s1
 	               LEFT JOIN (
-				              SELECT region_trade, population_group
-				                FROM data_book
-					                 LEFT JOIN (
-						                        SELECT region, population_group
-										          FROM population_base) AS s2
-					                 ON data_book.region_data_book = s2.region) AS s3
-	               ON s1.region = s3.region_trade
+				   SELECT region_trade, population_group
+				     FROM data_book
+					       LEFT JOIN (
+						           SELECT region, population_group
+						             FROM population_base) AS s2
+					             ON data_book.region_data_book = s2.region) AS s3
+	                     ON s1.region = s3.region_trade
 )
 SELECT year_trade,
        quarter_trade,
@@ -414,12 +414,12 @@ SELECT year_trade,
        ROUND(AVG(avg_check) OVER (
              PARTITION BY population_group, quarter_trade
              ORDER BY year_trade), 0) AS "avg_check_group",
-	   ROUND((avg_check - AVG(avg_check) OVER (
+       ROUND((avg_check - AVG(avg_check) OVER (
              PARTITION BY population_group, quarter_trade
              ORDER BY year_trade)) / AVG(avg_check) OVER (
              PARTITION BY population_group, quarter_trade
              ORDER BY year_trade)*100, 0) AS "deviation_avg_check",
-	   population_group
+       population_group
   FROM t6
   ORDER BY region, quarter_trade;
   
@@ -451,8 +451,8 @@ FROM trade_region
 ORDER BY year_trade Desc, yoy_turnover_percentage Asc
 LIMIT 3;
 
-/*выборка 3х регионов с наибольшими темпами роста среднего чека 'yoy_avg_check_percentage' в 2022 г. из представления 'trade_category'/
-selection of 3 regions with highest rate of growth of average check 'yoy_avg_check_percentage' from view 'trade_category'*/
+/*выборка 3х регионов с наибольшими темпами роста среднего чека 'yoy_avg_check_percentage' в 2022 г. из представления 'trade_region'/
+selection of 3 regions with highest rate of growth of average check 'yoy_avg_check_percentage' from view 'trade_region'*/
 SELECT region,
        year_trade,
        avg_check,
@@ -480,7 +480,7 @@ ORDER BY year_trade Desc, yoy_avg_check_percentage Asc
 LIMIT 3;
 
 /*выборка 3х категорий товаров с наибольшими темпами роста оборота 'yoy_turnover_percentage' в 2022 г. из представления 'trade_category'/
-selection of 3 categories of goods with highest rate of growth of turnover 'yoy_turnover_percentage' from view 'trade_region'*/
+selection of 3 categories of goods with highest rate of growth of turnover 'yoy_turnover_percentage' from view 'trade_category'*/
 SELECT category,
 	   year_trade,
 	   total_turnover,	
@@ -493,8 +493,8 @@ FROM trade_category
 ORDER BY year_trade Desc, yoy_turnover_percentage Desc
 LIMIT 3;
 
-/*выборка 3х категорий товаров с наименьшими темпами роста оборота 'yoy_turnover_percentage' в 2022 г. из представления 'trade_region'/
-selection of 3 categories of goods with lowest rate of growth of turnover 'yoy_turnover_percentage' from view 'trade_region'*/
+/*выборка 3х категорий товаров с наименьшими темпами роста оборота 'yoy_turnover_percentage' в 2022 г. из представления 'trade_category'/
+selection of 3 categories of goods with lowest rate of growth of turnover 'yoy_turnover_percentage' from view 'trade_category'*/
 SELECT category,
 	   year_trade,
 	   total_turnover,	
@@ -521,8 +521,8 @@ FROM trade_category
 ORDER BY year_trade Desc, yoy_avg_check_percentage Desc
 LIMIT 3;
 
-/*выборка 3х категорий товаров с наименьшими темпами роста среднего чека 'yoy_avg_check_percentage' в 2022 г. из представления 'trade_region'/
-selection of 3 categories of goods with lowest rate of growth of average check 'yoy_avg_check_percentage' from view 'trade_region'*/
+/*выборка 3х категорий товаров с наименьшими темпами роста среднего чека 'yoy_avg_check_percentage' в 2022 г. из представления 'trade_category'/
+selection of 3 categories of goods with lowest rate of growth of average check 'yoy_avg_check_percentage' from view 'trade_category'*/
 SELECT category,
        year_trade,
        avg_check,
