@@ -1,8 +1,8 @@
 /* создание схемы `schema_trade`/ creation of schema `schema_trade` */
 CREATE SCHEMA schema_trade;
 
-/* создание таблицы `trade`: id, регион, тип торговли, дата транзакции, категория товаров, оборот, средний чек /
-/ creation of table `trade`: id, region, trade type, date of transaction, category of goods, turnover, average check*/
+/* создание таблицы `trade`: id, регион, тип торговли (внутренняя), дата транзакции, категория товаров, оборот, средний чек /
+/ creation of table `trade`: id, region, trade type (internal), date of transaction, category of goods, turnover, average check*/
 CREATE TABLE trade (
     id INT PRIMARY KEY AUTO_INCREMENT,
 	region VARCHAR(40),
@@ -22,8 +22,8 @@ SELECT *
   FROM trade
  LIMIT 10;
 
-/* выборка и сравнение оборота (total_turnover) и среднего чека (avg_check) по аналогичным кварталам в 2022 и 2021 годах (yoy)/
-selection and comparison of turnover and average check by comparable quarters in 2022 and 2021 years (yoy)*/
+/* выборка и сравнение оборота (total_turnover) и среднего чека (avg_check) по аналогичным кварталам в 2022 и 2021 годах (yoy_turnover_percentage, yoy_avg_check_percentage)/
+selection and comparison of turnover and average check by comparable quarters in 2022 and 2021 years (yoy_turnover_percentage, yoy_avg_check_percentage)*/
 WITH t1 AS (
     SELECT QUARTER(date_trade) AS "quarter_trade",
            YEAR(date_trade) AS "year_trade",
@@ -45,8 +45,8 @@ SELECT year_trade,
   FROM t1
   ORDER BY year_trade Desc, quarter_trade Asc;
 
-/* создание представления 'trade_region'/
-creation of view 'trade_region'*/
+/* создание представления 'trade_region': регион, год, оборот, yoy_turnover_percentage, средний чек, yoy_avg_check_percentage/
+creation of view 'trade_region': region, year, turnover, yoy_turnover_percentage, average check, yoy_avg_check_percentage*/
 CREATE VIEW trade_region
 AS SELECT *
      FROM (
@@ -77,22 +77,16 @@ SELECT region,
           total_turnover Desc,
           region) AS t3;
 
-/* выборка и сравнение оборота (total_turnover) и среднего чека (avg_check) по регионам в 2022 и 2021 годах (yoy) из представления 'trade_region'/
-selection and comparison of turnover (total_turnover) and average check (avg_check) by regions in 2022 and 2021 years (yoy) from view 'trade_region'*/
+/* выборка и сравнение оборота (total_turnover) и среднего чека (avg_check) по регионам в 2022 и 2021 годах (yoy_turnover_percentage, yoy_avg_check_percentage)
+из представления 'trade_region'/
+selection and comparison of turnover (total_turnover) and average check (avg_check) by regions in 2022 and 2021 years (yoy_turnover_percentage, yoy_avg_check_percentage)
+from view 'trade_region'*/
 SELECT region,
        year_trade,
        total_turnover,	
-       ROUND((total_turnover - LAG(total_turnover, 1) OVER (
-             PARTITION BY region
-             ORDER BY year_trade)) / LAG(total_turnover, 1) OVER (
-             PARTITION BY region
-             ORDER BY year_trade)*100, 0) AS "yoy_turnover_percentage",
+       yoy_turnover_percentage,
        avg_check,
-       ROUND((avg_check - LAG(avg_check, 1) OVER (
-             PARTITION BY region
-             ORDER BY year_trade)) / LAG(avg_check, 1) OVER (
-             PARTITION BY region
-             ORDER BY year_trade)*100, 0) AS "yoy_avg_check_percentage"
+       yoy_avg_check_percentage
   FROM trade_region
  ORDER BY year_trade Desc,
           total_turnover Desc,
@@ -136,8 +130,8 @@ GROUP BY region, year_trade
  ORDER BY year_trade Desc,
           turnover_percentage Desc;
 
-/* создание представления 'trade_category'/
-creation of view 'trade_category'*/
+/* создание представления 'trade_category': категория товаров, год, оборот, yoy_turnover_percentage, средний чек, yoy_avg_check_percentage/
+creation of view 'trade_category': category of goods, year, turnover, yoy_turnover_percentage, average check, yoy_avg_check_percentage*/
 CREATE VIEW trade_category
 AS SELECT *
      FROM (
@@ -166,22 +160,16 @@ SELECT category,
   FROM t3
  ORDER BY year_trade Desc) AS t4;
 
-/* выборка и сравнение оборота (total_turnover) и среднего чека (avg_check) по категориям в 2022 и 2021 годах (yoy) из представления 'trade_category'/
-selection and сomparison of turnover and average check by categories in 2022 and 2021 years (yoy) from view 'trade_category'*/
+/* выборка и сравнение оборота (total_turnover) и среднего чека (avg_check) по категориям в 2022 и 2021 годах (yoy_turnover_percentage, yoy_avg_check_percentage)
+из представления 'trade_category'/
+selection and сomparison of turnover and average check by categories in 2022 and 2021 years (yoy_turnover_percentage, yoy_avg_check_percentage)
+from view 'trade_category'*/
 SELECT category,
        year_trade,
        total_turnover,	
-       ROUND((total_turnover - LAG(total_turnover, 1) OVER (
-             PARTITION BY category
-             ORDER BY year_trade)) / LAG(total_turnover, 1) OVER (
-             PARTITION BY category
-             ORDER BY year_trade)*100, 0) AS "yoy_turnover_percentage",
+       yoy_turnover_percentage,
        avg_check,
-       ROUND((avg_check - LAG(avg_check, 1) OVER (
-             PARTITION BY category
-             ORDER BY year_trade)) / LAG(avg_check, 1) OVER (
-             PARTITION BY category
-             ORDER BY year_trade)*100, 0) AS "yoy_avg_check_percentage"
+       yoy_avg_check_percentage
   FROM trade_category
  ORDER BY year_trade Desc,
           total_turnover Desc;
@@ -218,7 +206,7 @@ SELECT year_trade,
 	                                             ROUND(SUM(turnover), 0) AS "year_total_turnover"
                                                 FROM trade
 				               GROUP BY YEAR(date_trade) ) AS s2
-	                              ON s1.year_trade1=s2.year_trade) AS s3
+	                               ON s1.year_trade1=s2.year_trade) AS s3
 GROUP BY category, year_trade
  ORDER BY turnover_percentage Desc) AS s4
  ORDER BY year_trade Desc,
@@ -341,9 +329,9 @@ SELECT *
  LIMIT 10;
  
 /*определение среднего чека (avg_check_group) по группе по населению,
-отклонения среднего чека региона от среднего чека по по группе по населению (deviation_avg_check) в 2022 г./
+отклонения среднего чека региона от среднего чека по по группе по населению (deviation_avg_check) в % в 2022 г./
 definition of average check (avg_check_group) by population group,
-deviation of average check by region from average check by population group (deviation_avg_check) in 2022 */
+deviation of average check by region from average check by population group (deviation_avg_check) in % in 2022 */
 WITH t5 AS (
      SELECT year_trade,
             region, 
@@ -381,9 +369,9 @@ SELECT year_trade,
   ORDER BY avg_check Desc;
 
 /*определение среднего чека (avg_check_group) по группе по населению,
-отклонения среднего чека региона от среднего чека по по группе по населению (deviation_avg_check) по кварталам в 2022 г./
+отклонения среднего чека региона от среднего чека по по группе по населению (deviation_avg_check) в % по кварталам в 2022 г./
 definition of average check (avg_check_group) by population group,
-deviation of average check by region from average check by population group (deviation_avg_check) by quarters in 2022 */
+deviation of average check by region from average check by population group (deviation_avg_check) in % by quarters in 2022 */
 WITH t6 AS (
      SELECT year_trade,
             quarter_trade,
@@ -428,11 +416,7 @@ selection of 3 regions with highest rate of growth of turnover 'yoy_turnover_per
 SELECT region,
        year_trade,
        total_turnover,	
-       ROUND((total_turnover - LAG(total_turnover, 1) OVER (
-             PARTITION BY region
-             ORDER BY year_trade)) / LAG(total_turnover, 1) OVER (
-             PARTITION BY region
-             ORDER BY year_trade)*100, 0) AS "yoy_turnover_percentage"        
+       yoy_turnover_percentage     
 FROM trade_region
 ORDER BY year_trade Desc, yoy_turnover_percentage Desc
 LIMIT 3;
@@ -442,11 +426,7 @@ selection of 3 regions with lowest rate of growth of turnover 'yoy_turnover_perc
 SELECT region,
        year_trade,
        total_turnover,	
-       ROUND((total_turnover - LAG(total_turnover, 1) OVER (
-             PARTITION BY region
-             ORDER BY year_trade)) / LAG(total_turnover, 1) OVER (
-             PARTITION BY region
-             ORDER BY year_trade)*100, 0) AS "yoy_turnover_percentage"        
+       yoy_turnover_percentage        
 FROM trade_region
 ORDER BY year_trade Desc, yoy_turnover_percentage Asc
 LIMIT 3;
@@ -456,11 +436,7 @@ selection of 3 regions with highest rate of growth of average check 'yoy_avg_che
 SELECT region,
        year_trade,
        avg_check,
-       ROUND((avg_check - LAG(avg_check, 1) OVER (
-             PARTITION BY region
-             ORDER BY year_trade)) / LAG(avg_check, 1) OVER (
-             PARTITION BY region
-             ORDER BY year_trade)*100, 0) AS "yoy_avg_check_percentage"
+       yoy_avg_check_percentage
 FROM trade_region
 ORDER BY year_trade Desc, yoy_avg_check_percentage Desc
 LIMIT 3;
@@ -470,11 +446,7 @@ selection of 3 regions with lowest rate of growth of average check 'yoy_avg_chec
 SELECT region,
        year_trade,
        avg_check,
-       ROUND((avg_check - LAG(avg_check, 1) OVER (
-             PARTITION BY region
-             ORDER BY year_trade)) / LAG(avg_check, 1) OVER (
-             PARTITION BY region
-             ORDER BY year_trade)*100, 0) AS "yoy_avg_check_percentage"
+       yoy_avg_check_percentage
 FROM trade_region
 ORDER BY year_trade Desc, yoy_avg_check_percentage Asc
 LIMIT 3;
@@ -484,11 +456,7 @@ selection of 3 categories of goods with highest rate of growth of turnover 'yoy_
 SELECT category,
        year_trade,
        total_turnover,	
-       ROUND((total_turnover - LAG(total_turnover, 1) OVER (
-              PARTITION BY category
-              ORDER BY year_trade)) / LAG(total_turnover, 1) OVER (
-              PARTITION BY category
-              ORDER BY year_trade)*100, 0) AS "yoy_turnover_percentage"        
+       yoy_turnover_percentage       
 FROM trade_category
 ORDER BY year_trade Desc, yoy_turnover_percentage Desc
 LIMIT 3;
@@ -496,13 +464,9 @@ LIMIT 3;
 /*выборка 3х категорий товаров с наименьшими темпами роста оборота 'yoy_turnover_percentage' в 2022 г. из представления 'trade_category'/
 selection of 3 categories of goods with lowest rate of growth of turnover 'yoy_turnover_percentage' from view 'trade_category'*/
 SELECT category,
-       year_trade,
-       total_turnover,	
-       ROUND((total_turnover - LAG(total_turnover, 1) OVER (
-             PARTITION BY category
-             ORDER BY year_trade)) / LAG(total_turnover, 1) OVER (
-             PARTITION BY category
-             ORDER BY year_trade)*100, 0) AS "yoy_turnover_percentage"        
+	   year_trade,
+	   total_turnover,	
+	   yoy_turnover_percentage       
 FROM trade_category
 ORDER BY year_trade Desc, yoy_turnover_percentage Asc
 LIMIT 3;
@@ -512,11 +476,7 @@ selection of 3 categories of goods with highest rate of growth of average check 
 SELECT category,
        year_trade,
        avg_check,
-       ROUND((avg_check - LAG(avg_check, 1) OVER (
-             PARTITION BY category
-             ORDER BY year_trade)) / LAG(avg_check, 1) OVER (
-             PARTITION BY category
-             ORDER BY year_trade)*100, 0) AS "yoy_avg_check_percentage"
+       yoy_avg_check_percentage
 FROM trade_category
 ORDER BY year_trade Desc, yoy_avg_check_percentage Desc
 LIMIT 3;
@@ -526,11 +486,7 @@ selection of 3 categories of goods with lowest rate of growth of average check '
 SELECT category,
        year_trade,
        avg_check,
-       ROUND((avg_check - LAG(avg_check, 1) OVER (
-             PARTITION BY category
-             ORDER BY year_trade)) / LAG(avg_check, 1) OVER (
-             PARTITION BY category
-             ORDER BY year_trade)*100, 0) AS "yoy_avg_check_percentage"
+       yoy_avg_check_percentage
 FROM trade_category
 ORDER BY year_trade Desc, yoy_avg_check_percentage Asc
 LIMIT 3;
